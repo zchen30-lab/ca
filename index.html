@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
+<title>Caffeine Overdose — Pixel Desktop</title>
+<style>
+  :root{
+    --bg:#0b0f14; --ink:#e6e9ef; --muted:#9aa4b2; --panel:#111623; --accent:#00A3FF;
+    --pink:#ff62b0; --lemon:#ffd36c; --coffee:#5a3a24; --cup:#d8e4ff; --cup-shadow:#89a0ff1a;
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);
+    font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Lucida Console", monospace}
+  *{box-sizing:border-box}
+  #app{position:relative;min-height:100%;overflow:hidden}
+
+  /* Room & desk */
+  .room{position:absolute;inset:0;pointer-events:none;background:
+    radial-gradient(1200px 700px at 50% 45%, rgba(255,247,209,.06), transparent 60%),
+    linear-gradient(180deg,#0b0f14 0%,#080c11 100%)}
+  .desk{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);width:min(980px,92vw);height:380px;pointer-events:none}
+  .desk::before{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(#1a2030,#0f1420 60%, #0a0f18)}
+  .monitor{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);width:min(820px,92vw);height:480px;background:#0b0f18;border-radius:14px;
+    box-shadow:0 50px 90px rgba(0,0,0,.6), inset 0 0 0 2px #141a27}
+  .stand{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);width:140px;height:60px;background:#131925;border-bottom-left-radius:16px;border-bottom-right-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+  .base{position:absolute;left:50%;bottom:80px;transform:translateX(-50%);width:300px;height:22px;background:#0e1420;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.7)}
+
+  /* Screen */
+  .screen{position:absolute;inset:14px;overflow:hidden;background:linear-gradient(180deg,#0f1625,#0b111e);
+    border-radius:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+  .statusbar{position:absolute;left:0;right:0;top:0;height:36px;display:flex;align-items:center;gap:10px;padding:0 12px;color:#cdd6e3;
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0));font-size:12px}
+  .dot{width:10px;height:10px;border-radius:50%;background:#ff5f57;box-shadow:16px 0 0 #febc2e,32px 0 0 #28c840}
+  .clock{margin-left:auto;opacity:.7}
+  .layer{position:absolute;inset:36px 0 0 0;display:grid;place-items:center;padding:24px}
+  .pane{width:min(720px,90%);max-width:720px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:#0e1626;
+    box-shadow:0 20px 60px rgba(0,0,0,.35), inset 0 0 40px rgba(0,0,0,.25)}
+  .code{padding:18px;white-space:pre-wrap;color:#cbe0ff;line-height:1.65;font-size:14px}
+  .kw{color:#7bd6ff}.str{color:#ffe082}.cm{color:#7f8fa1}
+
+  /* Scanlines + noise */
+  .scanlines{position:absolute;inset:0;mix-blend-mode:overlay;opacity:.15;pointer-events:none;background:
+    repeating-linear-gradient( to bottom, rgba(255,255,255,.08) 0px, rgba(255,255,255,.08) 1px, transparent 2px, transparent 4px)}
+  .noise{position:absolute;inset:-20%;background-image:
+    radial-gradient(transparent 64%, rgba(255,255,255,.06) 65%),
+    radial-gradient(transparent 64%, rgba(255,255,255,.06) 65%);
+    background-size:3px 3px,5px 5px;mix-blend-mode:soft-light;filter:blur(.2px);opacity:.08;animation:noise 1.2s steps(2) infinite}
+  @keyframes noise{to{transform:translate(1px,-1px)}}
+
+  /* Buttons */
+  .choices{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:40}
+  .btn{appearance:none;border:0;border-radius:12px;padding:14px 18px;font-weight:800;letter-spacing:.5px;color:#0b0e13;cursor:pointer;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .12s ease, box-shadow .2s ease}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 14px 38px rgba(0,0,0,.34)}
+  .b-ice{background:linear-gradient(180deg,#c8e8ff,#8bd0ff)}
+  .b-lofi{background:linear-gradient(180deg,#ffcfec,#ff91c6)}
+  .b-project{background:linear-gradient(180deg,#ffeaa1,#ffd36c)}
+  .restart{appearance:none;border:1px solid rgba(255,255,255,.08);background:#131a29;color:#cfe2ff;border-radius:10px;padding:8px 12px;font-size:12px;cursor:pointer;
+    position:absolute;top:52px;right:28px;z-index:45}
+
+  /* Coffee cup (pixel-ish) */
+  .cupWrap{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:160px;height:160px;pointer-events:none;filter:drop-shadow(0 18px 32px rgba(0,0,0,.35))}
+  .cup{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:110px;height:86px;background:var(--cup);border-radius:10px 10px 18px 18px;
+    box-shadow:inset 0 0 0 2px #a4b6e6, inset 0 -14px 0 var(--coffee)}
+  .handle{position:absolute;right:-18px;bottom:26px;width:28px;height:34px;border:6px solid var(--cup);border-left:6px solid transparent;border-radius:18px}
+  .steam{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);width:6px;height:14px;background:linear-gradient(180deg, rgba(255,255,255,.3), transparent);
+    filter:blur(.5px);animation:steam 2.2s ease-in-out infinite}
+  .steam:nth-child(2){left:calc(50% - 10px);animation-delay:.4s}
+  .steam:nth-child(3){left:calc(50% + 10px);animation-delay:.8s}
+  @keyframes steam{0%{opacity:0;transform:translate(-50%,8px)}30%{opacity:.7}100%{opacity:0;transform:translate(-50%,-20px)}}
+  .reflect{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:200px;height:26px;background:radial-gradient(80px 12px at 50% 30%, var(--cup-shadow), transparent 70%)}
+
+  /* Jitter */
+  .jitter{animation:jitter .3s steps(2) infinite}
+  @keyframes jitter{0%{transform:translate(0,0)}50%{transform:translate(1px,-1px)}100%{transform:translate(0,0)}}
+
+  /* Lo-Fi player / Figma / BSOD panes */
+  .player,.figma,.bsod,.splash,.coffee-canvas{width:min(680px,88%);max-width:680px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#0f1526;overflow:hidden}
+  .player header,.figma header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .dotRow{width:10px;height:10px;border-radius:50%;background:#ff5f57;box-shadow:16px 0 0 #febc2e,32px 0 0 #28c840}
+  .title{font-weight:800}
+  .player .meta{padding:14px;display:flex;align-items:center;justify-content:space-between}
+  .bars{position:relative;height:80px;margin:14px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent)}
+  .bar{position:absolute;bottom:0;width:6px;background:#b9c8ff;opacity:.8}
+  .err{padding:18px;color:#ffd6e5}
+  .crash{color:#ff6aa8;font-weight:800}
+  .figma .grid{height:320px;background:
+      linear-gradient(transparent 23px,#142036 24px),
+      linear-gradient(90deg, transparent 23px,#142036 24px),
+      linear-gradient(transparent 1px,transparent 1px);
+    background-size:24px 24px,24px 24px,100% 100%; position:relative}
+  .node{position:absolute;width:80px;height:48px;background:#1a2946;border:1px solid rgba(255,255,255,.08);border-radius:8px}
+  .node:after{content:"";position:absolute;right:-6px;top:50%;transform:translateY(-50%);width:6px;height:6px;background:#ffd36c;border-radius:50%}
+  .bsod{background:#0b1e76}
+  .bsod .wrap{padding:28px 22px 36px 22px;color:#bcd2ff}
+  .bsod h1{margin:0 0 10px 0;font-size:22px}
+
+  .fade-enter{animation:fade .45s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none}}
+  @media (max-width: 640px){ .choices{flex-wrap:wrap;bottom:16px} }
+</style>
+</head>
+<body>
+<div id="app">
+  <div class="room"></div>
+  <div class="desk">
+    <div class="monitor">
+      <div class="screen" id="screen">
+        <div class="statusbar">
+          <div class="dot"></div>
+          <div>Caffeine_Overdose.md</div>
+          <div class="clock" id="clock">02:00</div>
+        </div>
+        <div class="layer" id="layer">
+          <section class="pane splash fade-enter" id="splash">
+            <div class="code">
+<span class="cm"># 02:00 AM — Fourth cup of coffee. Logic evaporates.</span>
+
+<span class="kw">Choices</span>:
+  🧊 <span class="str">Add More Ice</span>
+  🎧 <span class="str">Make a Lo-Fi Playlist</span>
+  💡 <span class="str">Start a New Project</span>
+
+<span class="cm"># Pick an option below.</span>
+            </div>
+          </section>
+        </div>
+        <div class="scanlines"></div>
+        <div class="noise"></div>
+      </div>
+    </div>
+    <div class="stand"></div>
+    <div class="base"></div>
+  </div>
+
+  <!-- Cup & reflection (always visible) -->
+  <div class="cupWrap" aria-hidden="true">
+    <div class="cup" id="cup"><div class="handle"></div></div>
+    <div class="steam"></div><div class="steam"></div><div class="steam"></div>
+    <div class="reflect"></div>
+  </div>
+
+  <div class="choices" id="choices">
+    <button class="btn b-ice" data-mode="ice">🧊 Add More Ice</button>
+    <button class="btn b-lofi" data-mode="lofi">🎧 Make a Lo-Fi Playlist</button>
+    <button class="btn b-project" data-mode="project">💡 Start a New Project</button>
+  </div>
+
+  <button class="restart" id="restart" title="Restart">Restart ⟲</button>
+</div>
+
+<script>
+(() => {
+  const $ = s=>document.querySelector(s);
+  const layer = $('#layer');
+  const screen = $('#screen');
+  const clockEl = $('#clock');
+  const cup = $('#cup');
+  const restartBtn = $('#restart');
+
+  // ===== Clock =====
+  let now = new Date(); now.setHours(2,0,0,0);
+  const fmt=n=>n<10?('0'+n):n;
+  setInterval(()=>{ now.setMinutes(now.getMinutes()+1); clockEl.textContent = `${fmt(now.getHours())}:${fmt(now.getMinutes())}` }, 3000);
+
+  function mount(el){ layer.innerHTML=''; el.classList.add('fade-enter'); layer.appendChild(el); }
+
+  // ===== WebAudio =====
+  const Actx = window.AudioContext||window.webkitAudioContext; let ctx, master;
+  const audio = {
+    start(){ if(ctx) return; ctx = new Actx(); master = ctx.createGain(); master.gain.value=.7; master.connect(ctx.destination); baseHum(); },
+    key(){ if(!ctx) return; const o = ctx.createOscillator(); o.type='square'; o.frequency.value=200+Math.random()*80;
+      const g=ctx.createGain(); g.gain.value=0; o.connect(g).connect(master); o.start();
+      const t=ctx.currentTime; g.gain.linearRampToValueAtTime(.05,t+.005); g.gain.exponentialRampToValueAtTime(1e-4,t+.08); o.stop(t+.11) },
+    boom(){ if(!ctx) return; const n = noise(.6); const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=240; bp.Q.value=0.6;
+      const g=ctx.createGain(); g.gain.value=.0; n.connect(bp).connect(g).connect(master); n.start();
+      const t=ctx.currentTime; g.gain.linearRampToValueAtTime(.4,t+.01); g.gain.exponentialRampToValueAtTime(1e-3,t+.6); n.stop(t+.65) },
+    rain:startRain, stopRain:stopRain,
+    bsod(){ if(!ctx) return; const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=100; const g=ctx.createGain(); g.gain.value=.0; o.connect(g).connect(master); o.start();
+      const t=ctx.currentTime; g.gain.linearRampToValueAtTime(.08,t+.2); g.gain.linearRampToValueAtTime(0,t+2.2); o.stop(t+2.3) }
+  };
+  function baseHum(){ const o = ctx.createOscillator(); o.type='sine'; o.frequency.value=60; const g=ctx.createGain(); g.gain.value=.02;
+    const n=noise(.02); const ng=ctx.createGain(); ng.gain.value=.02; o.connect(g).connect(master); n.connect(ng).connect(master); o.start(); n.start(); }
+  function noise(level){ const b = ctx.createBuffer(1, 2*44100, 44100); const d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*level; const s = ctx.createBufferSource(); s.buffer=b; s.loop=true; return s; }
+
+  // Rain chain
+  let rainNodes=null;
+  function startRain(){ if(!ctx||rainNodes) return; const n = noise(.2); const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1200; const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=200;
+    const g = ctx.createGain(); g.gain.value=.0; n.connect(lp).connect(hp).connect(g).connect(master); n.start(); const t=ctx.currentTime; g.gain.linearRampToValueAtTime(.22, t+1.2); rainNodes={n,g}; }
+  function stopRain(){ if(!ctx||!rainNodes) return; const t=ctx.currentTime; rainNodes.g.gain.linearRampToValueAtTime(0,t+1.0); setTimeout(()=>{ try{rainNodes.n.stop();}catch{} rainNodes=null; }, 1100); }
+
+  // ===== Scenes =====
+  function makeSplash(){
+    const wrap = document.createElement('section'); wrap.className='pane splash';
+    wrap.innerHTML=`<div class="code">
+<span class='cm'># Fourth cup. The cup is shaking. Your cursor too.</span>
+
+<span class='kw'>Pick your poison ↓</span>
+</div>`; return wrap;
+  }
+
+  function makeLofi(){
+    const wrap = document.createElement('section'); wrap.className='player';
+    wrap.innerHTML = `
+      <header><div class="dotRow"></div><div class="title">Lo-Fi Player</div><div style="margin-left:auto;color:#b6c3e3">1 AM Rain Noise — 10h LOOP</div></header>
+      <div class="meta"><div>status: <span class="crash">spotify crashed</span> → auto looping rain</div><div>bitrate: 96kbps</div></div>
+      <div class="bars" id="bars"></div>
+      <div class="err">ERR_0xSP0T: application stopped responding. enjoy the rain.</div>
+    `;
+    // animated bars
+    const bars = wrap.querySelector('#bars');
+    const count = 80; for(let i=0;i<count;i++){ const b=document.createElement('div'); b.className='bar'; b.style.left=(i*(100/count))+'%'; b.style.height=(10+Math.random()*60)+'px'; b.style.opacity=.6+Math.random()*.4; bars.appendChild(b); }
+    let t=0; (function loop(){ t+=0.016; const bs=bars.children; for(let i=0;i<bs.length;i++){ const e=bs[i]; const h = 14 + Math.abs(Math.sin(t*1.5 + i*.3))*52; e.style.height = h+'px'; } requestAnimationFrame(loop) })();
+    // audio
+    audio.stopRain(); audio.rain();
+    // glitch screen slight
+    screen.classList.add('jitter'); setTimeout(()=>screen.classList.remove('jitter'), 1600);
+    return wrap;
+  }
+
+  function makeProject(){
+    const wrap = document.createElement('section'); wrap.className='figma';
+    wrap.innerHTML=`
+      <header><div class="dotRow"></div><div class="title">Figma — Untitled</div></header>
+      <div class="grid" id="grid"></div>
+    `;
+    const grid = wrap.querySelector('#grid');
+    for(let i=0;i<6;i++){ const n=document.createElement('div'); n.className='node'; n.style.left=(40+i*90)+'px'; n.style.top=(40+((i%2)*100))+'px'; grid.appendChild(n); }
+    // after 1s → BSOD
+    setTimeout(()=>{ mount(makeBsod()); audio.bsod(); }, 1000);
+    return wrap;
+  }
+
+  function makeBsod(){
+    const wrap = document.createElement('section'); wrap.className='bsod';
+    wrap.innerHTML=`<div class="wrap"><h1>:( Your brain ran into a problem</h1>Collecting coffee grounds: 42%<br><br>Try: close 3 tabs • drink water • sleep.</div>`;
+    screen.classList.add('jitter'); setTimeout(()=>screen.classList.remove('jitter'), 1200);
+    audio.stopRain();
+    return wrap;
+  }
+
+  function makeIce(){
+    const section = document.createElement('section'); section.className='coffee-canvas';
+    section.innerHTML = `<canvas id="cv" style="display:block;width:100%;height:360px;image-rendering:pixelated"></canvas>`;
+    setTimeout(explodeCoffee, 30);
+    return section;
+  }
+
+  // ===== "GO TO SLEEP" pixel-splash =====
+  let splashPts=null, splashTime=0;
+  const MON = { // monitor inner rect for drawing reference
+    get x(){ return screen.getBoundingClientRect().left + 14; },
+    get y(){ return screen.getBoundingClientRect().top + 50; },
+    get w(){ return screen.getBoundingClientRect().width - 28; },
+    get h(){ return screen.getBoundingClientRect().height - 64; }
+  };
+
+  function buildSplash(text){
+    // Build an 8-bit target map inside the monitor area using a coarse grid
+    const off = document.createElement('canvas'); const octx = off.getContext('2d');
+    const TW = 800, TH = 360; // fixed layout for consistency
+    off.width = TW; off.height = TH; octx.fillStyle='#000'; octx.fillRect(0,0,TW,TH);
+    octx.font='900 80px ui-monospace, Menlo, monospace';
+    octx.fillStyle='#fff'; octx.textAlign='center'; octx.textBaseline='middle';
+    octx.fillText(text, TW/2, TH/2);
+    const img = octx.getImageData(0,0,TW,TH).data;
+
+    // Pixel config
+    const STEP = 8;        // sampling step (coarse pixels)
+    const PS   = 4;        // pixel block size
+    const ox = (screen.clientWidth - TW)/2 + screen.getBoundingClientRect().left;
+    const oy = (screen.clientHeight - TH)/2 + screen.getBoundingClientRect().top;
+
+    // Generate coffee particles that flock to text pixels
+    const pts=[]; const droplets=[];
+    for(let y=0;y<TH;y+=STEP){
+      for(let x=0;x<TW;x+=STEP){
+        const i=(y*TW+x)*4; if(img[i+3] > 128){
+          pts.push({
+            x: window.innerWidth/2 + (Math.random()*16-8),
+            y: screen.getBoundingClientRect().bottom + 24 + Math.random()*24,
+            tx: ox + x, ty: oy + y,
+            vx: (Math.random()-0.5)*2.4,
+            vy: -(2.0 + Math.random()*2.5),
+            ps: PS
+          });
+          if(Math.random()<0.12){
+            droplets.push({
+              x: window.innerWidth/2,
+              y: screen.getBoundingClientRect().bottom - 6,
+              vx: (Math.random()-0.5)*3.5,
+              vy: -(2.5 + Math.random()*2.5),
+              r: 1 + (Math.random()<0.5?0:1),
+              life: 40 + (Math.random()*40|0)
+            });
+          }
+        }
+      }
+    }
+    splashPts = {pts, droplets, ps:PS, pal:['#6a452e','#5d3d29','#7a5336','#4b3221']};
+    splashTime = 0;
+  }
+
+  function explodeCoffee(){
+    audio.boom();
+    // cup squash & jitter
+    screen.classList.add('jitter'); setTimeout(()=>screen.classList.remove('jitter'), 1600);
+    cup.style.transition='transform .22s ease';
+    cup.style.transform='translateX(-50%) scale(1.08)';
+    setTimeout(()=>{ cup.style.transform='translateX(-50%) scale(0.92)'; }, 120);
+    // build particle target and start a canvas painter
+    buildSplash('GO TO SLEEP');
+
+    const cvs = document.getElementById('cv'); const ctx2 = cvs.getContext('2d');
+    const DPR = Math.max(1, Math.min(2, window.devicePixelRatio||1));
+    function resize(){ const w=Math.min(680, layer.clientWidth*0.98); const h=360; cvs.width = (w*DPR)|0; cvs.height=(h*DPR)|0; cvs.style.height=h+'px'; cvs.style.width=w+'px'; ctx2.setTransform(DPR,0,0,DPR,0,0); }
+    resize(); window.addEventListener('resize', resize);
+
+    (function step(){
+      const W=cvs.width/DPR, H=cvs.height/DPR;
+      ctx2.fillStyle='#0f1526'; ctx2.fillRect(0,0,W,H);
+
+      // We render in local canvas space; convert global particle coords into canvas space.
+      const rect = cvs.getBoundingClientRect();
+      const toLocal = (gx,gy) => ({x: gx - rect.left, y: gy - rect.top});
+
+      if(splashPts){
+        const {pts, droplets, pal, ps} = splashPts;
+
+        // coffee spray — foreground droplets with gravity and decay
+        for(let i=droplets.length-1;i>=0;i--){
+          const d = droplets[i];
+          d.x += d.vx; d.y += d.vy; d.vy += 0.18; d.life--;
+          const P = toLocal(d.x,d.y);
+          ctx2.fillStyle = pal[(i*3 + (d.life>>2)) % pal.length];
+          ctx2.fillRect(P.x|0, P.y|0, d.r, d.r);
+          // bounce off bottom of monitor interior (approx)
+          const bottom = screen.getBoundingClientRect().bottom - 20;
+          if(d.y > bottom){ d.y = bottom; d.vy *= -0.35; d.vx *= 0.85; }
+          if(d.life<=0) droplets.splice(i,1);
+        }
+
+        // text particles — steer to target pixels, then jitter subtly
+        for(const p of pts){
+          // spring toward target
+          const ax = (p.tx - p.x) * 0.05;
+          const ay = (p.ty - p.y) * 0.05;
+          p.vx = (p.vx + ax) * 0.90;
+          p.vy = (p.vy + ay + 0.12) * 0.90; // gravity leak
+          p.x += p.vx; p.y += p.vy;
+
+          // settle jitter when close
+          if(Math.abs(p.x - p.tx) < 0.8 && Math.abs(p.y - p.ty) < 0.8){
+            p.x = p.tx + Math.sin((splashTime*0.08 + p.tx*0.2)) * 0.3;
+            p.y = p.ty + Math.cos((splashTime*0.07 + p.ty*0.2)) * 0.3;
+            p.vx *= 0.5; p.vy *= 0.5;
+          }
+
+          const c = pal[((p.tx + p.ty + (splashTime>>2))|0) % pal.length];
+          const L = toLocal(p.x,p.y);
+          // chunky pixel block + dark edges for 8-bit look
+          ctx2.fillStyle = c; ctx2.fillRect(L.x|0, L.y|0, ps, ps);
+          ctx2.fillStyle = '#3a271a';
+          ctx2.fillRect((L.x|0)-1, (L.y|0)+ps-1, ps+2, 1);
+          ctx2.fillRect((L.x|0)+ps-1, (L.y|0)-1, 1, ps+2);
+        }
+        splashTime++;
+      }
+      requestAnimationFrame(step);
+    })();
+  }
+
+  // ===== Controls =====
+  document.getElementById('choices').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-mode]'); if(!btn) return; audio.start(); audio.key();
+    const mode = btn.dataset.mode;
+    if(mode==='ice'){ mount(makeIce()); stopRain(); }
+    if(mode==='lofi'){ mount(makeLofi()); }
+    if(mode==='project'){ mount(makeProject()); stopRain(); }
+  });
+
+  restartBtn.addEventListener('click', ()=>{
+    audio.key();
+    stopRain();
+    mount(makeSplash());
+  });
+
+})();
+</script>
+</body>
+</html>
