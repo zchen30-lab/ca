@@ -2,299 +2,389 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Career Choose-2 → Pixel Ending</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1"/>
+<title>Caffeine Overdose — Pixel Desktop</title>
 <style>
   :root{
-    --bg:#FAF7F0;
-    --panel:#FFFFFF;
-    --ink:#34495E;
-    --sky:#BDE3FF;
-    --mint:#BFF0D4;
-    --lemon:#FFF3A3;
-    --peach:#FFD6C2;
-    --coral:#FF8A65;
-    --teal:#3CB9A5;
-    --brown:#A86E3B;
-    --sand:#F3E2C7;
-    --stone:#E2E8F0;
-    --shadow:#E8E1D4;
-    --accent:#00A3FF; /* bright blue (not purple) */
+    --bg:#0b0f14; --ink:#e6e9ef; --muted:#9aa4b2; --panel:#111623; --accent:#00A3FF;
+    --pink:#ff62b0; --lemon:#ffd36c; --coffee:#5a3a24; --cup:#d8e4ff; --cup-shadow:#89a0ff1a;
   }
   html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);
-    font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
-  .screen{position:fixed;inset:0;display:none}
-  .screen.show{display:block}
+    font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, "Lucida Console", monospace}
+  *{box-sizing:border-box}
+  #app{position:relative;min-height:100%;overflow:hidden}
 
-  /* — Selection (pure text) — */
-  .select-wrap{max-width:900px;margin:32px auto;padding:16px}
-  h1{margin:0 0 12px;font-size:22px;letter-spacing:.3px}
-  .sub{opacity:.85;margin:0 0 16px 0;font-size:14px}
-  .choices{display:flex;flex-direction:column;gap:10px}
-  .choice{
-    display:flex;align-items:center;gap:10px;
-    background:var(--panel);
-    border:2px solid var(--stone);
-    border-radius:14px;
-    padding:12px 14px;
-    cursor:pointer; user-select:none;
-    font-weight:800;
-    box-shadow:0 2px 0 var(--shadow);
-    transition:border-color .15s ease,transform .06s ease,box-shadow .06s ease;
-  }
-  .choice:active{transform:translateY(1px);box-shadow:0 1px 0 var(--shadow)}
-  .choice[data-active="true"]{border-color:var(--accent);box-shadow:0 4px 0 var(--shadow)}
-  .emo{font-size:18px}
-  .note{font-size:13px;opacity:.8;margin-top:10px}
+  /* Room & desk */
+  .room{position:absolute;inset:0;pointer-events:none;background:
+    radial-gradient(1200px 700px at 50% 45%, rgba(255,247,209,.06), transparent 60%),
+    linear-gradient(180deg,#0b0f14 0%,#080c11 100%)}
+  .desk{position:absolute;left:50%;bottom:-40px;transform:translateX(-50%);width:min(980px,92vw);height:380px;pointer-events:none}
+  .desk::before{content:"";position:absolute;left:0;right:0;bottom:0;height:120px;background:linear-gradient(#1a2030,#0f1420 60%, #0a0f18)}
+  .monitor{position:absolute;left:50%;bottom:150px;transform:translateX(-50%);width:min(820px,92vw);height:480px;background:#0b0f18;border-radius:14px;
+    box-shadow:0 50px 90px rgba(0,0,0,.6), inset 0 0 0 2px #141a27}
+  .stand{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);width:140px;height:60px;background:#131925;border-bottom-left-radius:16px;border-bottom-right-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+  .base{position:absolute;left:50%;bottom:80px;transform:translateX(-50%);width:300px;height:22px;background:#0e1420;border-radius:10px;box-shadow:0 10px 40px rgba(0,0,0,.7)}
 
-  /* — Ending screen — */
-  .ending{background:var(--panel)}
-  .bar{position:absolute;left:12px;right:12px;top:12px;display:flex;gap:8px;align-items:center;z-index:10}
-  .back{background:var(--panel);border:2px solid var(--stone);border-radius:12px;
-    padding:8px 12px;font-weight:800;cursor:pointer;box-shadow:0 2px 0 var(--shadow)}
-  .badge{margin-left:auto;background:linear-gradient(90deg,var(--sky),var(--mint));
-    border:1px solid var(--stone);padding:6px 10px;border-radius:12px;font-weight:800}
-  canvas{display:block;width:100vw;height:100vh;image-rendering:pixelated;touch-action:none}
-  .cap{position:absolute;left:12px;right:12px;bottom:14px;z-index:10;font-size:14px;
-    display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
-  .cap b{font-weight:800}
+  /* Screen */
+  .screen{position:absolute;inset:14px;overflow:hidden;background:linear-gradient(180deg,#0f1625,#0b111e);
+    border-radius:10px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.04)}
+  .statusbar{position:absolute;left:0;right:0;top:0;height:36px;display:flex;align-items:center;gap:10px;padding:0 12px;color:#cdd6e3;
+    background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,0));font-size:12px}
+  .dot{width:10px;height:10px;border-radius:50%;background:#ff5f57;box-shadow:16px 0 0 #febc2e,32px 0 0 #28c840}
+  .clock{margin-left:auto;opacity:.7}
+  .layer{position:absolute;inset:36px 0 0 0;display:grid;place-items:center;padding:24px}
+  .pane{width:min(720px,90%);max-width:720px;border-radius:12px;border:1px solid rgba(255,255,255,.06);background:#0e1626;
+    box-shadow:0 20px 60px rgba(0,0,0,.35), inset 0 0 40px rgba(0,0,0,.25)}
+  .code{padding:18px;white-space:pre-wrap;color:#cbe0ff;line-height:1.65;font-size:14px}
+  .kw{color:#7bd6ff}.str{color:#ffe082}.cm{color:#7f8fa1}
+
+  /* Scanlines + noise */
+  .scanlines{position:absolute;inset:0;mix-blend-mode:overlay;opacity:.15;pointer-events:none;background:
+    repeating-linear-gradient( to bottom, rgba(255,255,255,.08) 0px, rgba(255,255,255,.08) 1px, transparent 2px, transparent 4px)}
+  .noise{position:absolute;inset:-20%;background-image:
+    radial-gradient(transparent 64%, rgba(255,255,255,.06) 65%),
+    radial-gradient(transparent 64%, rgba(255,255,255,.06) 65%);
+    background-size:3px 3px,5px 5px;mix-blend-mode:soft-light;filter:blur(.2px);opacity:.08;animation:noise 1.2s steps(2) infinite}
+  @keyframes noise{to{transform:translate(1px,-1px)}}
+
+  /* Buttons */
+  .choices{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:12px;z-index:40}
+  .btn{appearance:none;border:0;border-radius:12px;padding:14px 18px;font-weight:800;letter-spacing:.5px;color:#0b0e13;cursor:pointer;
+    box-shadow:0 10px 30px rgba(0,0,0,.25);transition:transform .12s ease, box-shadow .2s ease}
+  .btn:hover{transform:translateY(-1px);box-shadow:0 14px 38px rgba(0,0,0,.34)}
+  .b-ice{background:linear-gradient(180deg,#c8e8ff,#8bd0ff)}
+  .b-lofi{background:linear-gradient(180deg,#ffcfec,#ff91c6)}
+  .b-project{background:linear-gradient(180deg,#ffeaa1,#ffd36c)}
+  .restart{appearance:none;border:1px solid rgba(255,255,255,.08);background:#131a29;color:#cfe2ff;border-radius:10px;padding:8px 12px;font-size:12px;cursor:pointer;
+    position:absolute;top:52px;right:28px;z-index:45}
+
+  /* Coffee cup (pixel-ish) */
+  .cupWrap{position:absolute;left:50%;bottom:24px;transform:translateX(-50%);width:160px;height:160px;pointer-events:none;filter:drop-shadow(0 18px 32px rgba(0,0,0,.35))}
+  .cup{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:110px;height:86px;background:var(--cup);border-radius:10px 10px 18px 18px;
+    box-shadow:inset 0 0 0 2px #a4b6e6, inset 0 -14px 0 var(--coffee)}
+  .handle{position:absolute;right:-18px;bottom:26px;width:28px;height:34px;border:6px solid var(--cup);border-left:6px solid transparent;border-radius:18px}
+  .steam{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);width:6px;height:14px;background:linear-gradient(180deg, rgba(255,255,255,.3), transparent);
+    filter:blur(.5px);animation:steam 2.2s ease-in-out infinite}
+  .steam:nth-child(2){left:calc(50% - 10px);animation-delay:.4s}
+  .steam:nth-child(3){left:calc(50% + 10px);animation-delay:.8s}
+  @keyframes steam{0%{opacity:0;transform:translate(-50%,8px)}30%{opacity:.7}100%{opacity:0;transform:translate(-50%,-20px)}}
+  .reflect{position:absolute;left:50%;bottom:-6px;transform:translateX(-50%);width:200px;height:26px;background:radial-gradient(80px 12px at 50% 30%, var(--cup-shadow), transparent 70%)}
+
+  /* Jitter */
+  .jitter{animation:jitter .3s steps(2) infinite}
+  @keyframes jitter{0%{transform:translate(0,0)}50%{transform:translate(1px,-1px)}100%{transform:translate(0,0)}}
+
+  /* Lo-Fi player / Figma / BSOD panes */
+  .player,.figma,.bsod,.splash,.coffee-canvas{width:min(680px,88%);max-width:680px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:#0f1526;overflow:hidden}
+  .player header,.figma header{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+  .dotRow{width:10px;height:10px;border-radius:50%;background:#ff5f57;box-shadow:16px 0 0 #febc2e,32px 0 0 #28c840}
+  .title{font-weight:800}
+  .player .meta{padding:14px;display:flex;align-items:center;justify-content:space-between}
+  .bars{position:relative;height:80px;margin:14px;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent)}
+  .bar{position:absolute;bottom:0;width:6px;background:#b9c8ff;opacity:.8}
+  .err{padding:18px;color:#ffd6e5}
+  .crash{color:#ff6aa8;font-weight:800}
+  .figma .grid{height:320px;background:
+      linear-gradient(transparent 23px,#142036 24px),
+      linear-gradient(90deg, transparent 23px,#142036 24px),
+      linear-gradient(transparent 1px,transparent 1px);
+    background-size:24px 24px,24px 24px,100% 100%; position:relative}
+  .node{position:absolute;width:80px;height:48px;background:#1a2946;border:1px solid rgba(255,255,255,.08);border-radius:8px}
+  .node:after{content:"";position:absolute;right:-6px;top:50%;transform:translateY(-50%);width:6px;height:6px;background:#ffd36c;border-radius:50%}
+  .bsod{background:#0b1e76}
+  .bsod .wrap{padding:28px 22px 36px 22px;color:#bcd2ff}
+  .bsod h1{margin:0 0 10px 0;font-size:22px}
+
+  .fade-enter{animation:fade .45s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none}}
+  @media (max-width: 640px){ .choices{flex-wrap:wrap;bottom:16px} }
 </style>
 </head>
 <body>
+<div id="app">
+  <div class="room"></div>
+  <div class="desk">
+    <div class="monitor">
+      <div class="screen" id="screen">
+        <div class="statusbar">
+          <div class="dot"></div>
+          <div>Caffeine_Overdose.md</div>
+          <div class="clock" id="clock">02:00</div>
+        </div>
+        <div class="layer" id="layer">
+          <section class="pane splash fade-enter" id="splash">
+            <div class="code">
+<span class="cm"># 02:00 AM — Fourth cup of coffee. Logic evaporates.</span>
 
-<!-- Selection (pure text) -->
-<section class="screen show" id="screen-select">
-  <div class="select-wrap">
-    <h1>Career Path — Pick <b>two</b></h1>
-    <div class="sub">What do you want most from your future job?</div>
-    <div class="choices" id="choices">
-      <div class="choice" data-key="Money"><span class="emo">💰</span><span>Money</span></div>
-      <div class="choice" data-key="Time"><span class="emo">🕰️</span><span>Time</span></div>
-      <div class="choice" data-key="Passion"><span class="emo">❤️</span><span>Passion</span></div>
+<span class="kw">Choices</span>:
+  🧊 <span class="str">Add More Ice</span>
+  🎧 <span class="str">Make a Lo-Fi Playlist</span>
+  💡 <span class="str">Start a New Project</span>
+
+<span class="cm"># Pick an option below.</span>
+            </div>
+          </section>
+        </div>
+        <div class="scanlines"></div>
+        <div class="noise"></div>
+      </div>
     </div>
-    <div class="note">Pick exactly two. Tap again to deselect.</div>
+    <div class="stand"></div>
+    <div class="base"></div>
   </div>
-</section>
 
-<!-- Ending (full-screen pixel illustration) -->
-<section class="screen ending" id="screen-ending" aria-label="Ending Illustration">
-  <div class="bar">
-    <button class="back" id="btnBack">← Back</button>
-    <div class="badge" id="badge">—</div>
+  <!-- Cup & reflection (always visible) -->
+  <div class="cupWrap" aria-hidden="true">
+    <div class="cup" id="cup"><div class="handle"></div></div>
+    <div class="steam"></div><div class="steam"></div><div class="steam"></div>
+    <div class="reflect"></div>
   </div>
-  <canvas id="cv" width="1024" height="576"></canvas>
-  <div class="cap">
-    <span id="cap-en">—</span>
-    <span id="cap-desc">—</span>
+
+  <div class="choices" id="choices">
+    <button class="btn b-ice" data-mode="ice">🧊 Add More Ice</button>
+    <button class="btn b-lofi" data-mode="lofi">🎧 Make a Lo-Fi Playlist</button>
+    <button class="btn b-project" data-mode="project">💡 Start a New Project</button>
   </div>
-</section>
+
+  <button class="restart" id="restart" title="Restart">Restart ⟲</button>
+</div>
 
 <script>
 (() => {
-  // ===== Selection logic (pure text) =====
-  const choiceEls = [...document.querySelectorAll('.choice')];
-  const selected = new Set();
-  const scrSelect = document.getElementById('screen-select');
-  const scrEnding = document.getElementById('screen-ending');
-  const badge = document.getElementById('badge');
-  const capEn = document.getElementById('cap-en');
-  const capDesc = document.getElementById('cap-desc');
-  const btnBack = document.getElementById('btnBack');
+  const $ = s=>document.querySelector(s);
+  const layer = $('#layer');
+  const screen = $('#screen');
+  const clockEl = $('#clock');
+  const cup = $('#cup');
+  const restartBtn = $('#restart');
 
-  choiceEls.forEach(el=>{
-    el.tabIndex=0;
-    el.addEventListener('click', ()=>toggle(el));
-    el.addEventListener('keydown', (e)=>{
-      if(e.key===' '||e.key==='Enter'){ toggle(el); e.preventDefault(); }
-    });
-  });
+  // ===== Clock =====
+  let now = new Date(); now.setHours(2,0,0,0);
+  const fmt=n=>n<10?('0'+n):n;
+  setInterval(()=>{ now.setMinutes(now.getMinutes()+1); clockEl.textContent = `${fmt(now.getHours())}:${fmt(now.getMinutes())}` }, 3000);
 
-  function toggle(el){
-    const key = el.dataset.key;
-    if(selected.has(key)){
-      selected.delete(key);
-      el.dataset.active = "false";
-    }else{
-      if(selected.size<2){
-        selected.add(key);
-        el.dataset.active = "true";
-      }else{
-        // replace the oldest
-        const first=[...selected][0];
-        selected.delete(first);
-        const firstEl = choiceEls.find(c=>c.dataset.key===first);
-        if(firstEl) firstEl.dataset.active = "false";
-        selected.add(key);
-        el.dataset.active = "true";
+  function mount(el){ layer.innerHTML=''; el.classList.add('fade-enter'); layer.appendChild(el); }
+
+  // ===== WebAudio =====
+  const Actx = window.AudioContext||window.webkitAudioContext; let ctx, master;
+  const audio = {
+    start(){ if(ctx) return; ctx = new Actx(); master = ctx.createGain(); master.gain.value=.7; master.connect(ctx.destination); baseHum(); },
+    key(){ if(!ctx) return; const o = ctx.createOscillator(); o.type='square'; o.frequency.value=200+Math.random()*80;
+      const g=ctx.createGain(); g.gain.value=0; o.connect(g).connect(master); o.start();
+      const t=ctx.currentTime; g.gain.linearRampToValueAtTime(.05,t+.005); g.gain.exponentialRampToValueAtTime(1e-4,t+.08); o.stop(t+.11) },
+    boom(){ if(!ctx) return; const n = noise(.6); const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=240; bp.Q.value=0.6;
+      const g=ctx.createGain(); g.gain.value=.0; n.connect(bp).connect(g).connect(master); n.start();
+      const t=ctx.currentTime; g.gain.linearRampToValueAtTime(.4,t+.01); g.gain.exponentialRampToValueAtTime(1e-3,t+.6); n.stop(t+.65) },
+    rain:startRain, stopRain:stopRain,
+    bsod(){ if(!ctx) return; const o=ctx.createOscillator(); o.type='sawtooth'; o.frequency.value=100; const g=ctx.createGain(); g.gain.value=.0; o.connect(g).connect(master); o.start();
+      const t=ctx.currentTime; g.gain.linearRampToValueAtTime(.08,t+.2); g.gain.linearRampToValueAtTime(0,t+2.2); o.stop(t+2.3) }
+  };
+  function baseHum(){ const o = ctx.createOscillator(); o.type='sine'; o.frequency.value=60; const g=ctx.createGain(); g.gain.value=.02;
+    const n=noise(.02); const ng=ctx.createGain(); ng.gain.value=.02; o.connect(g).connect(master); n.connect(ng).connect(master); o.start(); n.start(); }
+  function noise(level){ const b = ctx.createBuffer(1, 2*44100, 44100); const d=b.getChannelData(0); for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*level; const s = ctx.createBufferSource(); s.buffer=b; s.loop=true; return s; }
+
+  // Rain chain
+  let rainNodes=null;
+  function startRain(){ if(!ctx||rainNodes) return; const n = noise(.2); const lp = ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=1200; const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=200;
+    const g = ctx.createGain(); g.gain.value=.0; n.connect(lp).connect(hp).connect(g).connect(master); n.start(); const t=ctx.currentTime; g.gain.linearRampToValueAtTime(.22, t+1.2); rainNodes={n,g}; }
+  function stopRain(){ if(!ctx||!rainNodes) return; const t=ctx.currentTime; rainNodes.g.gain.linearRampToValueAtTime(0,t+1.0); setTimeout(()=>{ try{rainNodes.n.stop();}catch{} rainNodes=null; }, 1100); }
+
+  // ===== Scenes =====
+  function makeSplash(){
+    const wrap = document.createElement('section'); wrap.className='pane splash';
+    wrap.innerHTML=`<div class="code">
+<span class='cm'># Fourth cup. The cup is shaking. Your cursor too.</span>
+
+<span class='kw'>Pick your poison ↓</span>
+</div>`; return wrap;
+  }
+
+  function makeLofi(){
+    const wrap = document.createElement('section'); wrap.className='player';
+    wrap.innerHTML = `
+      <header><div class="dotRow"></div><div class="title">Lo-Fi Player</div><div style="margin-left:auto;color:#b6c3e3">1 AM Rain Noise — 10h LOOP</div></header>
+      <div class="meta"><div>status: <span class="crash">spotify crashed</span> → auto looping rain</div><div>bitrate: 96kbps</div></div>
+      <div class="bars" id="bars"></div>
+      <div class="err">ERR_0xSP0T: application stopped responding. enjoy the rain.</div>
+    `;
+    // animated bars
+    const bars = wrap.querySelector('#bars');
+    const count = 80; for(let i=0;i<count;i++){ const b=document.createElement('div'); b.className='bar'; b.style.left=(i*(100/count))+'%'; b.style.height=(10+Math.random()*60)+'px'; b.style.opacity=.6+Math.random()*.4; bars.appendChild(b); }
+    let t=0; (function loop(){ t+=0.016; const bs=bars.children; for(let i=0;i<bs.length;i++){ const e=bs[i]; const h = 14 + Math.abs(Math.sin(t*1.5 + i*.3))*52; e.style.height = h+'px'; } requestAnimationFrame(loop) })();
+    // audio
+    audio.stopRain(); audio.rain();
+    // glitch screen slight
+    screen.classList.add('jitter'); setTimeout(()=>screen.classList.remove('jitter'), 1600);
+    return wrap;
+  }
+
+  function makeProject(){
+    const wrap = document.createElement('section'); wrap.className='figma';
+    wrap.innerHTML=`
+      <header><div class="dotRow"></div><div class="title">Figma — Untitled</div></header>
+      <div class="grid" id="grid"></div>
+    `;
+    const grid = wrap.querySelector('#grid');
+    for(let i=0;i<6;i++){ const n=document.createElement('div'); n.className='node'; n.style.left=(40+i*90)+'px'; n.style.top=(40+((i%2)*100))+'px'; grid.appendChild(n); }
+    // after 1s → BSOD
+    setTimeout(()=>{ mount(makeBsod()); audio.bsod(); }, 1000);
+    return wrap;
+  }
+
+  function makeBsod(){
+    const wrap = document.createElement('section'); wrap.className='bsod';
+    wrap.innerHTML=`<div class="wrap"><h1>:( Your brain ran into a problem</h1>Collecting coffee grounds: 42%<br><br>Try: close 3 tabs • drink water • sleep.</div>`;
+    screen.classList.add('jitter'); setTimeout(()=>screen.classList.remove('jitter'), 1200);
+    audio.stopRain();
+    return wrap;
+  }
+
+  function makeIce(){
+    const section = document.createElement('section'); section.className='coffee-canvas';
+    section.innerHTML = `<canvas id="cv" style="display:block;width:100%;height:360px;image-rendering:pixelated"></canvas>`;
+    setTimeout(explodeCoffee, 30);
+    return section;
+  }
+
+  // ===== "GO TO SLEEP" pixel-splash =====
+  let splashPts=null, splashTime=0;
+  const MON = { // monitor inner rect for drawing reference
+    get x(){ return screen.getBoundingClientRect().left + 14; },
+    get y(){ return screen.getBoundingClientRect().top + 50; },
+    get w(){ return screen.getBoundingClientRect().width - 28; },
+    get h(){ return screen.getBoundingClientRect().height - 64; }
+  };
+
+  function buildSplash(text){
+    // Build an 8-bit target map inside the monitor area using a coarse grid
+    const off = document.createElement('canvas'); const octx = off.getContext('2d');
+    const TW = 800, TH = 360; // fixed layout for consistency
+    off.width = TW; off.height = TH; octx.fillStyle='#000'; octx.fillRect(0,0,TW,TH);
+    octx.font='900 80px ui-monospace, Menlo, monospace';
+    octx.fillStyle='#fff'; octx.textAlign='center'; octx.textBaseline='middle';
+    octx.fillText(text, TW/2, TH/2);
+    const img = octx.getImageData(0,0,TW,TH).data;
+
+    // Pixel config
+    const STEP = 8;        // sampling step (coarse pixels)
+    const PS   = 4;        // pixel block size
+    const ox = (screen.clientWidth - TW)/2 + screen.getBoundingClientRect().left;
+    const oy = (screen.clientHeight - TH)/2 + screen.getBoundingClientRect().top;
+
+    // Generate coffee particles that flock to text pixels
+    const pts=[]; const droplets=[];
+    for(let y=0;y<TH;y+=STEP){
+      for(let x=0;x<TW;x+=STEP){
+        const i=(y*TW+x)*4; if(img[i+3] > 128){
+          pts.push({
+            x: window.innerWidth/2 + (Math.random()*16-8),
+            y: screen.getBoundingClientRect().bottom + 24 + Math.random()*24,
+            tx: ox + x, ty: oy + y,
+            vx: (Math.random()-0.5)*2.4,
+            vy: -(2.0 + Math.random()*2.5),
+            ps: PS
+          });
+          if(Math.random()<0.12){
+            droplets.push({
+              x: window.innerWidth/2,
+              y: screen.getBoundingClientRect().bottom - 6,
+              vx: (Math.random()-0.5)*3.5,
+              vy: -(2.5 + Math.random()*2.5),
+              r: 1 + (Math.random()<0.5?0:1),
+              life: 40 + (Math.random()*40|0)
+            });
+          }
+        }
       }
     }
-    if(selected.size===2){
-      const pair=[...selected].sort().join('+');
-      goEnding(pair);
-    }
+    splashPts = {pts, droplets, ps:PS, pal:['#6a452e','#5d3d29','#7a5336','#4b3221']};
+    splashTime = 0;
   }
 
-  btnBack.addEventListener('click', ()=>{
-    scrEnding.classList.remove('show');
-    scrSelect.classList.add('show');
-    // reset selections
-    selected.clear();
-    choiceEls.forEach(c=>c.dataset.active='false');
+  function explodeCoffee(){
+    audio.boom();
+    // cup squash & jitter
+    screen.classList.add('jitter'); setTimeout(()=>screen.classList.remove('jitter'), 1600);
+    cup.style.transition='transform .22s ease';
+    cup.style.transform='translateX(-50%) scale(1.08)';
+    setTimeout(()=>{ cup.style.transform='translateX(-50%) scale(0.92)'; }, 120);
+    // build particle target and start a canvas painter
+    buildSplash('GO TO SLEEP');
+
+    const cvs = document.getElementById('cv'); const ctx2 = cvs.getContext('2d');
+    const DPR = Math.max(1, Math.min(2, window.devicePixelRatio||1));
+    function resize(){ const w=Math.min(680, layer.clientWidth*0.98); const h=360; cvs.width = (w*DPR)|0; cvs.height=(h*DPR)|0; cvs.style.height=h+'px'; cvs.style.width=w+'px'; ctx2.setTransform(DPR,0,0,DPR,0,0); }
+    resize(); window.addEventListener('resize', resize);
+
+    (function step(){
+      const W=cvs.width/DPR, H=cvs.height/DPR;
+      ctx2.fillStyle='#0f1526'; ctx2.fillRect(0,0,W,H);
+
+      // We render in local canvas space; convert global particle coords into canvas space.
+      const rect = cvs.getBoundingClientRect();
+      const toLocal = (gx,gy) => ({x: gx - rect.left, y: gy - rect.top});
+
+      if(splashPts){
+        const {pts, droplets, pal, ps} = splashPts;
+
+        // coffee spray — foreground droplets with gravity and decay
+        for(let i=droplets.length-1;i>=0;i--){
+          const d = droplets[i];
+          d.x += d.vx; d.y += d.vy; d.vy += 0.18; d.life--;
+          const P = toLocal(d.x,d.y);
+          ctx2.fillStyle = pal[(i*3 + (d.life>>2)) % pal.length];
+          ctx2.fillRect(P.x|0, P.y|0, d.r, d.r);
+          // bounce off bottom of monitor interior (approx)
+          const bottom = screen.getBoundingClientRect().bottom - 20;
+          if(d.y > bottom){ d.y = bottom; d.vy *= -0.35; d.vx *= 0.85; }
+          if(d.life<=0) droplets.splice(i,1);
+        }
+
+        // text particles — steer to target pixels, then jitter subtly
+        for(const p of pts){
+          // spring toward target
+          const ax = (p.tx - p.x) * 0.05;
+          const ay = (p.ty - p.y) * 0.05;
+          p.vx = (p.vx + ax) * 0.90;
+          p.vy = (p.vy + ay + 0.12) * 0.90; // gravity leak
+          p.x += p.vx; p.y += p.vy;
+
+          // settle jitter when close
+          if(Math.abs(p.x - p.tx) < 0.8 && Math.abs(p.y - p.ty) < 0.8){
+            p.x = p.tx + Math.sin((splashTime*0.08 + p.tx*0.2)) * 0.3;
+            p.y = p.ty + Math.cos((splashTime*0.07 + p.ty*0.2)) * 0.3;
+            p.vx *= 0.5; p.vy *= 0.5;
+          }
+
+          const c = pal[((p.tx + p.ty + (splashTime>>2))|0) % pal.length];
+          const L = toLocal(p.x,p.y);
+          // chunky pixel block + dark edges for 8-bit look
+          ctx2.fillStyle = c; ctx2.fillRect(L.x|0, L.y|0, ps, ps);
+          ctx2.fillStyle = '#3a271a';
+          ctx2.fillRect((L.x|0)-1, (L.y|0)+ps-1, ps+2, 1);
+          ctx2.fillRect((L.x|0)+ps-1, (L.y|0)-1, 1, ps+2);
+        }
+        splashTime++;
+      }
+      requestAnimationFrame(step);
+    })();
+  }
+
+  // ===== Controls =====
+  document.getElementById('choices').addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-mode]'); if(!btn) return; audio.start(); audio.key();
+    const mode = btn.dataset.mode;
+    if(mode==='ice'){ mount(makeIce()); stopRain(); }
+    if(mode==='lofi'){ mount(makeLofi()); }
+    if(mode==='project'){ mount(makeProject()); stopRain(); }
   });
 
-  // ===== Ending canvas =====
-  const cv = document.getElementById('cv');
-  const ctx = cv.getContext('2d');
-  const DPR = Math.max(1, Math.min(2, window.devicePixelRatio||1));
-  const BASE_W = 256, BASE_H = 144;
-  cv.width = BASE_W * DPR * 4; cv.height = BASE_H * DPR * 4;
-  ctx.setTransform(DPR*4,0,0,DPR*4,0,0);
-  ctx.imageSmoothingEnabled = false;
+  restartBtn.addEventListener('click', ()=>{
+    audio.key();
+    stopRain();
+    mount(makeSplash());
+  });
 
-  // tiny pixel helpers
-  function pRect(ctx,x,y,w,h,fill,stroke){
-    if(fill){ ctx.fillStyle=fill; ctx.fillRect(x,y,w,h); }
-    if(stroke){ ctx.strokeStyle=stroke; ctx.strokeRect(x+0.5,y+0.5,w-1,h-1); }
-  }
-
-  let scene=null, t=0;
-
-  function sky(){
-    const g=ctx.createLinearGradient(0,0,0,BASE_H);
-    g.addColorStop(0,'#FFFFFF'); g.addColorStop(1,'#F6FBFF');
-    ctx.fillStyle=g; ctx.fillRect(0,0,BASE_W,BASE_H);
-    // soft sun and clouds
-    pRect(ctx, 8,8, 10,10,'#FFF3A3','#E8DA7F');
-    for(let i=0;i<3;i++){
-      const ox = (t*0.3 + i*90)% (BASE_W+60) - 60;
-      pRect(ctx, ox, 20+i*10, 28,10,'#FFFFFF','#E2E8F0');
-      pRect(ctx, ox+18, 16+i*10, 22,10,'#FFFFFF','#E2E8F0');
-    }
-  }
-  function floorOffice(y){ pRect(ctx,0,y,BASE_W,BASE_H-y,'#F3EDE1','#E8E1D4'); }
-  function floorWood(y){ pRect(ctx,0,y,BASE_W,BASE_H-y,'#F3E2C7','#E8D6BF'); for(let x=0;x<BASE_W;x+=8){ ctx.fillStyle='#E8D6BF'; ctx.fillRect(x,y,1,BASE_H-y);} }
-  function floorGrass(y){ pRect(ctx,0,y,BASE_W,BASE_H-y,'#CFF3B4','#9FD6BD'); for(let x=0;x<BASE_W;x+=6){ ctx.fillStyle='#9FD6BD'; ctx.fillRect(x,y+(x%12===0?1:0),6,1);} }
-
-  function pixelCoin(x,y){ pRect(ctx,x,y,6,3,'#FFD04A','#E8B73A'); }
-  function pixelClock(x,y,mm,hh){
-    pRect(ctx,x,y, 12,12,'#FFFFFF','#CBD5E1');
-    pRect(ctx,x+6,y+2+(mm%6), 1,6,'#9CC7E4');
-    pRect(ctx,x+2+(hh%6),y+6, 6,1,'#9CC7E4');
-  }
-  function pixelPlant(x,y){ pRect(ctx,x,y,6,6,'#9FD18B'); pRect(ctx,x-1,y+4,8,3,'#9FD18B'); pRect(ctx,x+1,y+7,4,3,'#E1A46E'); }
-  function pixelBooks(x,y){ pRect(ctx,x,y,10,6,'#BDE3FF','#9CC7E4'); pRect(ctx,x+12,y,10,6,'#FFF3A3','#E8DA7F'); pRect(ctx,x+24,y,10,6,'#FFD6C2','#F3B89F'); }
-
-  // ===== Endings (refined) =====
-  // Money + Time — quiet & steady workstation
-  function drawMoneyTime(){
-    sky(); floorOffice(92);
-    // desk
-    pRect(ctx, 24, 88, 120,10,'#EAC9A6','#D6B28D');
-    // triple monitors
-    pRect(ctx, 34, 70, 28,18,'#E8F5FF','#9CC7E4');
-    pRect(ctx, 64, 68, 32,20,'#E8F5FF','#9CC7E4');
-    pRect(ctx, 98, 70, 28,18,'#E8F5FF','#9CC7E4');
-    // keyboard
-    pRect(ctx, 36, 94, 38,4,'#E9EEF5','#C9D6E3');
-    // decor
-    pixelPlant(26,82); pixelBooks(110,86);
-    // person typing (gentle)
-    const up = (Math.sin(t*0.25)>0);
-    pRect(ctx, 18, 86, 10,16,'#BDE3FF','#9CC7E4'); // chair
-    pRect(ctx, 50, 80, 10,10,'#FFC8A2');           // torso
-    pRect(ctx, 52, 74, 6,6,'#FFC8A2','#E8A882'); pRect(ctx,52,72,6,2,'#A86E3B');
-    pRect(ctx, 60, 86+(up?0:1), 10,2,'#FFC8A2');
-    pRect(ctx, 42, 86+(up?1:0), 10,2,'#FFC8A2');
-    // clock + coins rhythm
-    pixelClock(8,8, Math.floor(t/8), Math.floor(t/32));
-    for(let i=0;i<8;i++){ const bx=160+i*8, by=84+Math.sin((t+i)*0.2); pixelCoin(bx,by); }
-    // commuting silhouettes
-    ctx.globalAlpha=.2;
-    for(let i=0;i<3;i++){ const x=(t*0.8 + i*90)%(BASE_W+50)-50; pRect(ctx,x,62+i*6,40,6,'#BDE3FF','#9CC7E4'); }
-    ctx.globalAlpha=1;
-  }
-
-  // Money + Passion — blazing drive, near burnout
-  function drawMoneyPassion(){
-    sky(); floorWood(90);
-    // crowded desk
-    pRect(ctx, 18, 86, 140,10,'#EAC9A6','#D6B28D');
-    // four screens
-    pRect(ctx, 24, 66, 28,18,'#E8F5FF','#9CC7E4');
-    pRect(ctx, 54, 62, 32,22,'#E8F5FF','#9CC7E4');
-    pRect(ctx, 88, 66, 28,18,'#E8F5FF','#9CC7E4');
-    pRect(ctx,118, 64, 30,20,'#E8F5FF','#9CC7E4');
-    // trophies/coins
-    for(let i=0;i<6;i++){ pixelCoin(20+i*10, 78 + (i%2)); }
-    // coffee steam
-    pRect(ctx, 148, 90, 8,6,'#FFFFFF','#E2E8F0');
-    const sy = 84 - Math.sin(t*0.3); pRect(ctx,150,sy,4,2,'rgba(189,227,255,0.8)');
-    // frantic typing
-    const up = (Math.sin(t*0.5)>0);
-    pRect(ctx, 58, 80, 10,10,'#FFC8A2');
-    pRect(ctx, 60, 72, 6,6,'#FFC8A2','#E8A882'); pRect(ctx,60,70,6,2,'#A86E3B');
-    pRect(ctx, 66, 86+(up?0:1), 12,2,'#FFC8A2');
-    pRect(ctx, 48, 86+(up?1:0), 12,2,'#FFC8A2');
-    pRect(ctx, 38, 94, 44,4,'#E9EEF5','#C9D6E3');
-    // heartbeat line
-    ctx.fillStyle='#FF8A65';
-    for(let x=10;x<BASE_W-10;x+=4){
-      const y=48+Math.sin((x+t*1.2)*0.15)*5; ctx.fillRect(x,y,2,2);
-    }
-  }
-
-  // Time + Passion — free-spirited broke artist
-  function drawTimePassion(){
-    sky(); floorGrass(98);
-    // bright sun beams
-    for(let i=0;i<10;i++){ ctx.fillStyle='rgba(255,243,163,0.14)'; ctx.fillRect(12+i*14,10+i*2,12,BASE_H-20); }
-    // easel + canvas
-    pRect(ctx, 26, 70, 4,30,'#A86E3B'); pRect(ctx, 40, 70, 4,30,'#A86E3B');
-    pRect(ctx, 28, 70,16,14,'#FFFFFF','#E2E8F0');
-    pRect(ctx, 30,100, 6,3,'#FF8A65'); pRect(ctx,38,104,6,3,'#3CB9A5'); pRect(ctx,46,102,6,3,'#FFF3A3');
-    // painter
-    const swing = (Math.sin(t*0.35)>0)?0:1;
-    pRect(ctx, 66, 84,10,10,'#BDE3FF');
-    pRect(ctx, 68, 78, 6,6,'#FFC8A2','#E8A882'); pRect(ctx,68,76,6,2,'#A86E3B');
-    pRect(ctx, 76, 88+swing, 10,2,'#FFC8A2'); pRect(ctx, 86, 88+swing, 2,2,'#3CB9A5');
-    // empty bag
-    pRect(ctx,112,108,16,8,'#FFE9C9','#E8D0A8'); pRect(ctx,118,104,6,4,'#E8D0A8');
-    // drifting Z
-    const zY = 60 - (t%48)/8;
-    pRect(ctx,200,zY,3,3,'#BDE3FF','#9CC7E4'); pRect(ctx,204,zY-3,3,3,'#BDE3FF','#9CC7E4'); pRect(ctx,208,zY-6,3,3,'#BDE3FF','#9CC7E4');
-  }
-
-  function render(){
-    if(scene==='Money+Time') drawMoneyTime();
-    else if(scene==='Money+Passion') drawMoneyPassion();
-    else if(scene==='Passion+Time') drawTimePassion();
-    t++; requestAnimationFrame(render);
-  }
-
-  function goEnding(pair){
-    let key=pair;
-    if(key==='Time+Money') key='Money+Time';
-    if(key==='Time+Passion') key='Passion+Time';
-    scene=key;
-
-    if(key==='Money+Time'){
-      badge.textContent='Money + Time';
-      capEn.innerHTML='<b>Quiet & steady life</b>';
-      capDesc.textContent='Tidy desk, predictable commute, coins ticking in rhythm.';
-    }else if(key==='Money+Passion'){
-      badge.textContent='Passion + Money';
-      capEn.innerHTML='<b>Blazing drive, near burnout</b>';
-      capDesc.textContent='Trophies, multi-screens, coffee steam and a heartbeat line.';
-    }else{
-      badge.textContent='Time + Passion';
-      capEn.innerHTML='<b>Free-spirited broke artist</b>';
-      capDesc.textContent='Sun beams, easel strokes, an empty picnic bag, drifting Zs.';
-    }
-
-    scrSelect.classList.remove('show');
-    scrEnding.classList.add('show');
-    t=0; render();
-  }
 })();
 </script>
 </body>
